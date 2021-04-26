@@ -1,2 +1,3 @@
 # ssemdgw
-上交所MDGW行情接入
+上交所MDGW行情接入。
+
