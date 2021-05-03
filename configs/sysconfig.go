@@ -1,14 +1,14 @@
-package sysconfig
+package configs
 
 import (
     _ "encoding/json"
 )
 
-type SysConf struct {
-    GateWayIP string
-    GateWayPort int
-    LocalIP string
-    LocalPort int
-    BackDir string
-}
 
+type SysConf struct {
+    Gatewayip   string `json:"GateWayIP"`
+    Gatewayport int    `json:"GateWayPort"`
+    Localip     string `json:"LocalIP"`
+    Localport   int    `json:"LocalPort"`
+    Backdir     string `json:"BackDir"`
+}

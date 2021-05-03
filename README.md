@@ -79,6 +79,8 @@ ssemdgw基本架构如下：
 
 
 
+
+
 # 附录
 
 [上海证券交易所 行情网关技术指引及接口开发指南](http://www.sse.com.cn/services/tradingservice/tradingtech/technical/policy/c/SSE_MDGW_Interface_0.6_20191111.pdf)
