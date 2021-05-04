@@ -71,13 +71,64 @@ ssemdgw基本架构如下：
 
 ## 3.1 配置读取
 
-（1）格式
+### 3.1.1 格式
 
 ​	json格式，通过Go语言自带的encoding/json解析和处理；
 
 ​	定义结构体:
 
+```go
 
+type SysConf struct {
+    Gatewayip   string `json:"GateWayIP"`
+    Gatewayport int    `json:"GateWayPort"`
+    Localip     string `json:"LocalIP"`
+    Localport   int    `json:"LocalPort"`
+    Backdir     string `json:"BackDir"`
+}
+```
+
+
+
+# 3.2 网络处理
+
+https://www.infoq.cn/article/boeavgkiqmvcj8qjnbxk
+
+
+
+### 3.2.1 连接MDGW网关
+
+（1）连接过程
+
+- 通过TCP协议连接MDGW网关， ssemdgw发起TCP请求，如果连接失败，等待配置时间间隔后重新连接；
+
+- 如果TCP连接建立之后因网络问题出现中断，也等待配置时间间隔后重新发起连接；
+- 或者在配置的时间内收不到消息。
+
+（2）配置项
+
+- 超时时间（timeout），TCP接收超时时间配置；
+- 连接时间间隔（conn_inteval），重新发起连接的间隔时间。
+
+（3）实现方法
+
+​	通过golang语言net库实现连接。
+
+### 3.2.2 会话管理
+
+​	MDGW行情网关协议如下：
+
+![协议交互](jpg\协议交互.png)
+
+（1）登录过程
+
+- ssemdgw完成TCP连接之后，发送登录消息，然后接收登录验证消息，如果验证失败（可能是由于用户名、密码等验证错误），解析注销消息获取原因。
+
+
+
+
+
+golang的net包
 
 
 
