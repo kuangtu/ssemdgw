@@ -122,7 +122,59 @@ https://www.infoq.cn/article/boeavgkiqmvcj8qjnbxk
 
 （1）登录过程
 
-- ssemdgw完成TCP连接之后，发送登录消息，然后接收登录验证消息，如果验证失败（可能是由于用户名、密码等验证错误），解析注销消息获取原因。
+- ssemdgw完成TCP连接之后，发送登录消息，然后接收登录验证消息，如果验证失败（可能是由于用户名、密码等验证错误），解析注销消息获取原因；
+- 如果登录成功，解析登录成功消息。
+
+（2）心跳消息
+
+- 用于监控通信连接的状况；
+- 当连接的任何一方在心跳时间间隔（由 HeartBtInt 域指定）时间内没有接收或发送任何数据的时候，需要产生一个心跳消息并发送出去；
+- 如果接收方在 2 倍心跳时间间隔内都没有收到任何消息的时候，那么可认为行情会话出现异常，可以立即关闭 TCP 连接。
+
+（3）注销消息
+
+- 发起或者确认行情会话终止；
+- 未经注销消息交换而断开连接，一律视为非正 常的断开。
+
+（4）消息组成
+
+- 每条消息有消息头、消息体和消息尾组成，消息最大长度为8K字节。
+-  头部格式：
+
+![消息头部](jpg\消息头部.png)
+
+- 消息尾:
+
+![消息尾](jpg\消息尾.png)
+
+
+
+（5）消息验证算法
+
+```c
+uint32 CalcChecksum(const char* buffer, uint32 len)
+{
+ uint8 checksum = 0;
+ uint32 i = 0;
+ for (i = 0; i < len; i++)
+ {
+ checksum += (uint8)buffer[i];
+ }
+ return (uint32)checksum;
+}
+```
+
+
+
+（2）主要消息体结构设计
+
+​	参照《规范》中的消息字段的类型：
+
+| 类型      | 说明                                                         |
+| --------- | ------------------------------------------------------------ |
+| char[x]   | 代表该字段为字符串，x 代表该字符串的最大字节数，x 为 大于零的数字，例如 char[5]代表最大长度为 5 字节的字符 串；当最大长度大于实际长度时，右补空格。字符串使用 GBK 编码 |
+| int,uint  | 代表该字段为整型数值，如 uint32 表示 32 位无符号整数， int64 表示 64 位有符号整数 |
+| Nx、Nx(y) | 与 int、uint 一并使用，用于给出该整型数值实际表示的业 务字段的长度（精度）: Nx 代表最大长度为 x 位数字的整 数；Nx(y)代表最大长度为 x 位数字，其中最末 y 位数字为小数部分 |
 
 
 
@@ -136,9 +188,9 @@ golang的net包
 
 [上海证券交易所 行情网关技术指引及接口开发指南](http://www.sse.com.cn/services/tradingservice/tradingtech/technical/policy/c/SSE_MDGW_Interface_0.6_20191111.pdf)
 
-
-
 [IS120 上海证券交易所行情网关 BINARY 数据接口规范](http://www.sse.com.cn/services/tradingservice/tradingtech/technical/data/c/IS120_BINARY_Interface_CV0.42_20210315.pdf)
+
+
 
 
 
