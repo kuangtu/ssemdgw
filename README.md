@@ -90,7 +90,7 @@ type SysConf struct {
 
 
 
-# 3.2 网络处理
+# 3.2 MDGW协议
 
 https://www.infoq.cn/article/boeavgkiqmvcj8qjnbxk
 
@@ -166,23 +166,127 @@ uint32 CalcChecksum(const char* buffer, uint32 len)
 
 
 
-（2）主要消息体结构设计
 
-​	参照《规范》中的消息字段的类型：
+
+### 3.2.3 主要消息体结构设计
+
+（1）消息字段类型	
+
+参照《规范》中的消息字段的类型：
 
 | 类型      | 说明                                                         |
 | --------- | ------------------------------------------------------------ |
-| char[x]   | 代表该字段为字符串，x 代表该字符串的最大字节数，x 为 大于零的数字，例如 char[5]代表最大长度为 5 字节的字符 串；当最大长度大于实际长度时，右补空格。字符串使用 GBK 编码 |
+| char[x]   | 代表该字段为字符串，x 代表该字符串的最大字节数，x 为 大于零的数字，例如 char[5]代表最大长度为 5 字节的字符串；当最大长度大于实际长度时，右补空格。字符串使用 GBK 编码 |
 | int,uint  | 代表该字段为整型数值，如 uint32 表示 32 位无符号整数， int64 表示 64 位有符号整数 |
-| Nx、Nx(y) | 与 int、uint 一并使用，用于给出该整型数值实际表示的业 务字段的长度（精度）: Nx 代表最大长度为 x 位数字的整 数；Nx(y)代表最大长度为 x 位数字，其中最末 y 位数字为小数部分 |
+| Nx、Nx(y) | 与 int、uint 一并使用，用于给出该整型数值实际表示的业 务字段的长度（精度）: Nx 代表最大长度为 x 位数字的整数；Nx(y)代表最大长度为 x 位数字，其中最末 y 位数字为小数部分 |
+
+其中，Nx(y)解析之后需要进行转换。
+
+（2）golang内置类型
+
+有对应的byte、int/uint8、int/uint16、int/uint32、int/uint64。
+
+（3）主要消息类型定义
+
+```go
+
+const LoginMsgType = "S001"
+const LogoutMsgType = "S002"
+const HBMsgType = "S003"
+
+type MsgHeader struct {
+    msgType [4]byte
+    SendingTtime uint64
+    MsgSeq uint64
+    BodyLength uint32
+}
+
+type MsgTail struct {
+    CheckSum uint32
+}
+
+//登录消息
+type LoginMsg struct {
+    Header MsgHeader
+    SenderCompID    [32]byte
+    TargetCompID    [32]byte
+    HeartBtInt      uint16
+    AppVerID        [8]byte
+    Tail MsgTail
+}
+
+//注销消息
+type LogoutMsg struct {
+    Header MsgHeader
+    SessionStatus uint32
+    Text    [256]byte
+    Tail MsgTail
+}
+
+//心跳消息
+type HeartBtMsg struct {
+    Header MsgHeader
+    Tail MsgTail
+}
+
+//市场状态消息
+type MktStatusMsg struct {
+    Header MsgHeader
+    SecurityType uint8
+    TradSesMode uint8
+    TradingSessionID [8]byte
+    TotNoRelatedSym uint32
+    Tail MsgTail
+}
+
+//行情快照
+type SnapMsg struct {
+    Header MsgHeader
+    SecurityType uint8
+    TradSesMode uint8
+    TradeDate uint32
+    LastUpdateTime  uint32
+    MDStreamID [5]byte
+    SecurityID [8]byte
+    Symbol [8]byte
+    PreClosePx uint64
+    TotalVolumeTraded uint64
+    NumTrades uint64
+    TotalValueTraded uint64
+    TradingPhaseCode [8]byte
+}
+
+//指数行情快照
+//根据条目个数需要进行扩展
+type IndexSnap struct {
+    SnapData SnapMsg
+    NoMDEntries uint16
+    MDEntryType [2]byte
+    MDEntryPx uint64
+}
+
+//竞价行情快照
+type BidSnap struct {
+    SnapData SnapMsg
+    NoMDEntries uint16
+    MDEntryType [2]byte
+    MDEntryPx uint64
+    MDEntrySize uint64
+    MDEntryPositionNo uint8
+}
+
+
+```
 
 
 
+根据接口规范，指数行情和竞价行情有扩展字段，不同类型设置“行情条目个数”，根据行情条目个数确定消息的长度。
 
 
-golang的net包
 
+## 3.3 网络接入
 
+ssemdgw
 
 # 附录
 
@@ -190,7 +294,7 @@ golang的net包
 
 [IS120 上海证券交易所行情网关 BINARY 数据接口规范](http://www.sse.com.cn/services/tradingservice/tradingtech/technical/data/c/IS120_BINARY_Interface_CV0.42_20210315.pdf)
 
-
+[golang内置类型](https://golang.org/pkg/builtin/)
 
 
 

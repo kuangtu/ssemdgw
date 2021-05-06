@@ -3,6 +3,7 @@ package main
 import (
     "fmt"
     "ssevss/configs"
+    "ssevss/message"
     "flag"
     "os"
     "io/ioutil"
@@ -12,6 +13,7 @@ import (
 var (
     confile = flag.String("f", "", "system config file path.")
     sysconf configs.SysConf
+    
 )
 
 func main() {
@@ -43,6 +45,10 @@ func main() {
     }
     
     fmt.Println("the gatewayip is:", sysconf.Gatewayip)
+    
+    var Header mdgwmsg.MsgHeader
+    Header.SendingTtime = 1111
+    fmt.Println("the send time is:", Header.SendingTtime)
     
 
 }
