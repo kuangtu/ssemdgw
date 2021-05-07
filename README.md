@@ -90,7 +90,7 @@ type SysConf struct {
 
 
 
-# 3.2 MDGW协议
+# 3.2 会话管理
 
 https://www.infoq.cn/article/boeavgkiqmvcj8qjnbxk
 
@@ -114,7 +114,7 @@ https://www.infoq.cn/article/boeavgkiqmvcj8qjnbxk
 
 ​	通过golang语言net库实现连接。
 
-### 3.2.2 会话管理
+### 3.2.2 通信协议
 
 ​	MDGW行情网关协议如下：
 
@@ -284,9 +284,15 @@ type BidSnap struct {
 
 
 
-## 3.3 网络接入
+## 3.3 socket接入
 
-ssemdgw
+ssemdgw通过TCP协议进行连接，并设置socket超时时间。采用Golang的标准库net。
+
+### 3.3.1 结构体设计
+
+
+
+
 
 # 附录
 
