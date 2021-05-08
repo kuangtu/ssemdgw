@@ -282,6 +282,8 @@ type BidSnap struct {
 
 根据接口规范，指数行情和竞价行情有扩展字段，不同类型设置“行情条目个数”，根据行情条目个数确定消息的长度。
 
+（2）结构体对齐
+
 
 
 ## 3.3 socket接入
@@ -289,6 +291,23 @@ type BidSnap struct {
 ssemdgw通过TCP协议进行连接，并设置socket超时时间。采用Golang的标准库net。
 
 ### 3.3.1 结构体设计
+
+```go
+type MdgwSock struct {
+    laddr, raddr *net.TCPAddr
+    lconn, rconn io.ReadWriteCloser
+}
+```
+
+ ### MDGW连接
+
+通过```Dial``` 函数发起tcp连接。
+
+
+
+### 登录验证
+
+创建消息之后，通过tcp进行发送登录消息，然后等待接收反馈。
 
 
 
