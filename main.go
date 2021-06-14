@@ -8,6 +8,7 @@ import (
     "os"
     "io/ioutil"
     "encoding/json"
+    "net"
 )
 
 var (
@@ -49,6 +50,15 @@ func main() {
     var Header mdgwmsg.MsgHeader
     Header.SendingTtime = 1111
     fmt.Println("the send time is:", Header.SendingTtime)
+    
+    //连接MDGW行情网关
+    //从配置sysconfig中获取Gatewayip
+    raddr, err := net.ResolveTCPAddr("tcp", sysconf.Gatewayip)
+    
+    if err !=nil {
+        logger.warn("Failed to resolve remote address:", err)
+        os.Exit(
+    
     
 
 }
