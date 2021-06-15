@@ -57,7 +57,9 @@ func main() {
     
     if err !=nil {
         logger.warn("Failed to resolve remote address:", err)
-        os.Exit(
+        os.Exit(1)
+    }
+    
     
     
 

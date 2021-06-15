@@ -42,7 +42,11 @@ func (mdgw *MdgwSock) ConnMDGW() int{
 
 //基于协议进行验证
 func (mdgw *MdgwSock) VerifyMDGW() bool {
+    //创建验证消息
     
+    //发送验证消息
+    
+    //接收验证消息
 
 //socket监听
 

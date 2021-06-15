@@ -5,6 +5,12 @@ const LoginMsgType = "S001"
 const LogoutMsgType = "S002"
 const HBMsgType = "S003"
 
+//创建MDGW相关消息类型
+type MDGWmsg struct {
+    
+}
+
+
 type MsgHeader struct {
     msgType [4]byte
     SendingTtime uint64
@@ -86,4 +92,14 @@ type BidSnap struct {
     MDEntryPositionNo uint8
 }
 
+
+//创建登录消息
+func (mdgwmsg *MDGWmsg) NewLoginMsg() *LoginMsg {
+
+}
+
+//创建登录返回消息
+func (mdgwmsg *MDGWmsg) NewLogoutMsg() *LogoutMsg {
+
+}
 
