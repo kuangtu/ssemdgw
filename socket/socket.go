@@ -48,9 +48,10 @@ func (mdgw *MdgwSock) VerifyMDGW() bool {
     
     //接收验证消息
 
+}
+
 //socket监听
 
 //socket读取
-
 
 
