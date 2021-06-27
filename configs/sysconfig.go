@@ -15,3 +15,5 @@ type SysConf struct {
 	HeaderBtInt  string `json:"HeaderBtInt"`
 	ApplVerID    string `json:"ApplVerID"`
 }
+
+var 

@@ -1,13 +1,12 @@
 package mdgwutils
 
 //计算校验和
-func CalCheckSum(byte, uint32 u32Len) uint32{
-	uint8 u8CheckSum = 0
-	uint32 u32Cnt = 0
-
+func calCheckSum(buffer []byte, u32Len uint32) uint32 {
+	var u32Cnt uint32
+	var chkSum uint8
 	for u32Cnt = 0; u32Cnt < u32Len; u32Cnt++ {
-		CalCheckSum += (uint8)byte[u32Cnt]
+		chkSum += uint8(buffer[u32Cnt])
 	}
 
-	return (uint32)u8ChkeckSum
+	return uint32(chkSum)
 }
