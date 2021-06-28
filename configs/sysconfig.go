@@ -1,14 +1,8 @@
 package configs
 
-import (
-	_ "encoding/json"
-)
-
 type SysConf struct {
-	Gatewayip    string `json:"GateWayIP"`
-	Gatewayport  int    `json:"GateWayPort"`
-	Localip      string `json:"LocalIP"`
-	Localport    int    `json:"LocalPort"`
+	Gatewayip    string `json:"GateWayIP:port"`
+	Localip      string `json:"LocalIP:port"`
 	Backdir      string `json:"BackDir"`
 	SenderCompID string `json:"SenderCompID"`
 	TargetCompID string `json:"TargetCompID"`
@@ -16,4 +10,4 @@ type SysConf struct {
 	ApplVerID    string `json:"ApplVerID"`
 }
 
-var 
+var VssConf SysConf

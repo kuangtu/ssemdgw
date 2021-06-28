@@ -5,18 +5,18 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
-	"net"
 	"os"
-	"ssevss/configs"
-	mdgwmsg "ssevss/message"
+	vssconf "ssevss/configs"
+	sess "ssevss/session"
+	sock "ssevss/socket"
 )
 
 var (
 	confile = flag.String("f", "", "system config file path.")
-	Sysconf configs.SysConf
 )
 
 func main() {
+	fmt.Println("main function")
 	flag.Parse()
 	if *confile == "" {
 		fmt.Println("confile path empty")
@@ -37,26 +37,33 @@ func main() {
 	byteBuffer, err := ioutil.ReadAll(jsonfile)
 	fmt.Println(string(byteBuffer))
 
-	err = json.Unmarshal(byteBuffer, &Sysconf)
+	err = json.Unmarshal(byteBuffer, &vssconf.VssConf)
 
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
 
-	fmt.Println("the gatewayip is:", Sysconf.Gatewayip)
+	fmt.Println("the gatewayip is:", vssconf.VssConf.Gatewayip)
 
-	var Header mdgwmsg.MsgHeader
-	Header.SendingTtime = 1111
-	fmt.Println("the send time is:", Header.SendingTtime)
+	//创建MdgwSession
+	raddr := sock.NewSockAddr(vssconf.VssConf.Gatewayip)
+	sess := sess.NewMdgwSession(&raddr)
 
-	//连接MDGW行情网关
-	//从配置sysconfig中获取Gatewayip
-	raddr, err := net.ResolveTCPAddr("tcp", Sysconf.Gatewayip)
+	ret := sess.ConnMDGW()
 
-	if err != nil {
-		logger.warn("Failed to resolve remote address:", err)
-		os.Exit(1)
-	}
+	fmt.Println("the connMdgw ret is:", ret)
+	// var Header mdgwmsg.MsgHeader
+	// Header.SendingTtime = 1111
+	// fmt.Println("the send time is:", Header.SendingTtime)
+
+	// //连接MDGW行情网关
+	// //从配置sysconfig中获取Gatewayip
+	// raddr, err := net.ResolveTCPAddr("tcp", Sysconf.Gatewayip)
+
+	// if err != nil {
+	// 	logger.warn("Failed to resolve remote address:", err)
+	// 	os.Exit(1)
+	// }
 
 }
