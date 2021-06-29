@@ -7,8 +7,7 @@ import (
 	"io/ioutil"
 	"os"
 	vssconf "ssevss/configs"
-	sess "ssevss/session"
-	sock "ssevss/socket"
+	msg "ssevss/message"
 )
 
 var (
@@ -46,13 +45,17 @@ func main() {
 
 	fmt.Println("the gatewayip is:", vssconf.VssConf.Gatewayip)
 
+	logingMsg, buf := msg.NewLoginMsg(1, 2)
+	fmt.Println("the msg send time is:", logingMsg.SendingTtime)
+	fmt.Println(buf)
 	//创建MdgwSession
-	raddr := sock.NewSockAddr(vssconf.VssConf.Gatewayip)
-	sess := sess.NewMdgwSession(&raddr)
+	// raddr := sock.NewSockAddr(vssconf.VssConf.Gatewayip)
+	// sess := sess.NewMdgwSession(raddr)
 
-	ret := sess.ConnMDGW()
+	// ret := sess.ConnMDGW()
 
-	fmt.Println("the connMdgw ret is:", ret)
+	// fmt.Println("the connMdgw ret is:", ret)
+
 	// var Header mdgwmsg.MsgHeader
 	// Header.SendingTtime = 1111
 	// fmt.Println("the send time is:", Header.SendingTtime)

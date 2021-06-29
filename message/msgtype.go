@@ -3,6 +3,7 @@ package mdgwmsg
 import (
 	"bytes"
 	"encoding/binary"
+	aa "ssevss/utils"
 )
 
 const (
@@ -110,9 +111,9 @@ type BidSnap struct {
 	MDEntryPositionNo uint8
 }
 
-func NewHeader(msgTytpe [4]byte, SendingTtime uint64, MsgSeq uint64, BodyLength uint32) (msgHeader *MsgHeader) {
+// func NewHeader(msgTytpe [4]byte, SendingTtime uint64, MsgSeq uint64, BodyLength uint32) (msgHeader *MsgHeader) {
 
-}
+// }
 
 //初始化
 func initLoginMsg(loginMsg *LoginMsg) {
@@ -200,13 +201,13 @@ func calLoginMsgChkSum(loginMsg *LoginMsg) []byte {
 	buf.Write(loginMsg.AppVerID[:])
 
 	//计算
-	chksum := calCheckSum(buf, MSGHEADER_LEN+LOGINMSG_BODY_LEN)
+	chksum := aa.CalCheckSum(buf.Bytes(), MSGHEADER_LEN+LOGINMSG_BODY_LEN)
 	loginMsg.CheckSum = chksum
 	return buf.Bytes()
 }
 
 //创建登录消息
-func NewLoginMsg(sendingTtime, msgSeq uint64) *LoginMsg {
+func NewLoginMsg(sendingTtime, msgSeq uint64) (*LoginMsg, []byte) {
 	loginMsg := &LoginMsg{}
 	//初始化登录消息
 	initLoginMsg(loginMsg)
@@ -215,11 +216,11 @@ func NewLoginMsg(sendingTtime, msgSeq uint64) *LoginMsg {
 	//填充消息头部
 	setLoginMsgHeader(loginMsg, sendingTtime, msgSeq)
 	//计算数据包校验和
-
-	return loginMsg
+	buf := calLoginMsgChkSum(loginMsg)
+	return loginMsg, buf
 }
 
 //创建登录返回消息
-func (mdgwmsg *MDGWmsg) NewLogoutMsg() *LogoutMsg {
+// func (mdgwmsg *MDGWmsg) NewLogoutMsg() *LogoutMsg {
 
-}
+// }

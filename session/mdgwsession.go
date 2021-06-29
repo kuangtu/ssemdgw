@@ -3,6 +3,8 @@ package mdgwsession
 import (
 	"io"
 	"net"
+
+	log "github.com/sirupsen/logrus"
 )
 
 //MdgwSession结构体
@@ -12,7 +14,7 @@ type MdgwSession struct {
 	laddr, raddr *net.TCPAddr
 	lconn, rconn io.ReadWriteCloser
 	//日志
-	Logger log
+	Logger log.Logger
 }
 
 //创建MdgwSock管理对象
