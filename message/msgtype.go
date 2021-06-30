@@ -179,7 +179,7 @@ func setLoginMsgHeader(loginMsg *LoginMsg, sendingTtime, msgSeq uint64) {
 }
 
 //计算登录消息校验和并填充MsgTail字段，返回字节数组buffer，后续进行发送
-func calLoginMsgChkSum(loginMsg *LoginMsg) []byte {
+func calLoginMsgChkSum(loginMsg *LoginMsg) *bytes.Buffer {
 	//将数据包中的字段放入到字节数组中，计算校验和
 	buf := new(bytes.Buffer)
 	//写入消息类型
@@ -203,11 +203,11 @@ func calLoginMsgChkSum(loginMsg *LoginMsg) []byte {
 	//计算
 	chksum := aa.CalCheckSum(buf.Bytes(), MSGHEADER_LEN+LOGINMSG_BODY_LEN)
 	loginMsg.CheckSum = chksum
-	return buf.Bytes()
+	return buf
 }
 
 //创建登录消息
-func NewLoginMsg(sendingTtime, msgSeq uint64) (*LoginMsg, []byte) {
+func NewLoginMsg(sendingTtime, msgSeq uint64) (*LoginMsg, *bytes.Buffer) {
 	loginMsg := &LoginMsg{}
 	//初始化登录消息
 	initLoginMsg(loginMsg)
@@ -215,7 +215,7 @@ func NewLoginMsg(sendingTtime, msgSeq uint64) (*LoginMsg, []byte) {
 	setLoginMsgBody(loginMsg)
 	//填充消息头部
 	setLoginMsgHeader(loginMsg, sendingTtime, msgSeq)
-	//计算数据包校验和
+	//计算数据包校验和，并填充校验值
 	buf := calLoginMsgChkSum(loginMsg)
 	return loginMsg, buf
 }

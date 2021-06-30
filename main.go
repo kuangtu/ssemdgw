@@ -8,6 +8,8 @@ import (
 	"os"
 	vssconf "ssevss/configs"
 	msg "ssevss/message"
+	sess "ssevss/session"
+	sock "ssevss/socket"
 )
 
 var (
@@ -22,7 +24,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Println("the config file name is:", confile)
+	fmt.Println("the config file name is:", *confile)
 
 	//打开文件进行读取
 	jsonfile, err := os.Open(*confile)
@@ -45,14 +47,16 @@ func main() {
 
 	fmt.Println("the gatewayip is:", vssconf.VssConf.Gatewayip)
 
-	logingMsg, buf := msg.NewLoginMsg(1, 2)
+	logingMsg, buf := msg.NewLoginMsg(3, 2)
 	fmt.Println("the msg send time is:", logingMsg.SendingTtime)
-	fmt.Println(buf)
+	fmt.Println(string(buf.Bytes()))
 	//创建MdgwSession
-	// raddr := sock.NewSockAddr(vssconf.VssConf.Gatewayip)
-	// sess := sess.NewMdgwSession(raddr)
+	raddr := sock.NewSockAddr(vssconf.VssConf.Gatewayip)
+	sess := sess.NewMdgwSession(raddr)
 
-	// ret := sess.ConnMDGW()
+	ret := sess.ConnMDGW()
+	fmt.Println("connect ret is:", ret)
+	sess.Rconn.Close()
 
 	// fmt.Println("the connMdgw ret is:", ret)
 
