@@ -56,6 +56,22 @@ func main() {
 
 	ret := sess.ConnMDGW()
 	fmt.Println("connect ret is:", ret)
+	if ret == -1 {
+		fmt.Println("connect mdgw failed:", ret)
+	}
+
+	res := sess.VerifyMDGW()
+	fmt.Println("verify res is:", res)
+
+	if res == false {
+		fmt.Println("verify mdgw failed.")
+
+		return
+	}
+
+	//启动定时发送心跳消息的goroutine
+
+	//验证通过之后，接收行情文件
 	sess.Rconn.Close()
 
 	// fmt.Println("the connMdgw ret is:", ret)

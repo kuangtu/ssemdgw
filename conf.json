@@ -1,5 +1,5 @@
 {
-    "GateWayIP:port": "127.0.0.1:20001",
+    "GateWayIP:port": "192.168.0.106:20001",
     "LocalIP:port": "127.0.0.1:30001",
     "BackDir": "BackDir"
 }
