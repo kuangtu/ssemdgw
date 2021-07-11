@@ -378,6 +378,47 @@ type MdgwSock struct {
 
 
 
+## 3.7 心跳消息
+
+按照接口规范，连接双方在数据发送的空闲期间应主动发送心跳消息，通过心跳消息可以监控行情会话的状态。
+
+按照定时周期发送发送，如果VSS超过两个HeartBtIntl指定的周期内没有收到MDGW发送的消息，则会话被认为是可能存在异常，VSS需要重新建立行情会话。
+
+### 3.7.1 心跳发送goroutine
+
+通过goroutine按照周期向MDGW发送心跳消息。连接建立成功之后，间隔发送。考虑到后续发送注销消息等的逻辑和心跳发送时分开的，因此需要注意socket写入的“同步”。
+
+
+
+## 3.8 会话关闭
+
+MDGW会主动断开与VSS之间的连接。
+
+- MDGW与交易所主机连接异常；
+- VSS未能及时处理MDGW发送的数据，导致MDGW内积压的待发送消息超过特定阈值。
+
+
+
+# 4 goroutine
+
+MDGW程序通过多个goroutine完成接收和解析工作。
+
+## 4.1 主goroutine
+
+main函数启动运行，读取配置文件，然后连接MDGW网关、根据协议发送验证消息。如果验证失败，则程序退出。如果验证成功，则启动数据接收goroutine以及数据解析goroutine。
+
+
+
+## 4.2 数据接收
+
+
+
+## 4.3 数据解析
+
+
+
+
+
 # 附录
 
 [上海证券交易所 行情网关技术指引及接口开发指南](http://www.sse.com.cn/services/tradingservice/tradingtech/technical/policy/c/SSE_MDGW_Interface_0.6_20191111.pdf)
