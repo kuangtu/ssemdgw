@@ -1,7 +1,9 @@
 package datas
 
 import (
+	"fmt"
 	msg "ssevss/message"
+	"sync"
 )
 
 //处理登录消息
@@ -32,3 +34,11 @@ func ProcHqSnapMsg(hqSnapMsg *msg.HqSnapMsg) {
 //处理指数行情
 
 //处理竞价行情
+func ProcMdgwMsg(ch chan int, wait *sync.WaitGroup) bool {
+
+	//等待执行
+	<-ch
+	fmt.Println("start ProcMdgw msg")
+	wait.Done()
+	return true
+}

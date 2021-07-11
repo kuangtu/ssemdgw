@@ -4,8 +4,6 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
-	proc "ssevss/datas"
-	msg "ssevss/message"
 	aa "ssevss/utils"
 )
 
@@ -288,19 +286,48 @@ func GetMsgFromBytes(b []byte, msglen int) MDGWMsg {
 }
 
 //解析消息
-func ParseMsg(b []byte, msglen int) {
-	mdgwmsg := GetMsgFromBytes(b, msglen)
-	switch v := mdgwmsg.(type) {
-	case *msg.LoginMsg:
+func ParseMsg(mdgwMsg MDGWMsg) int {
+
+	switch v := mdgwMsg.(type) {
+	case *LoginMsg:
 		fmt.Println("verify mdgw get msg is loginMsg", v.MsgType)
-		proc.ProcLoginMsg(v)
-	case *msg.LogoutMsg:
+	case *LogoutMsg:
 		fmt.Println("verify mdgw get msg is logoutMsg", v.MsgType)
-		proc.ProcLogoutMsg(v)
-	case *msg.MktStatusMsg:
+	case *MktStatusMsg:
 		fmt.Println("market status msg:", v.MsgType)
 	default:
 		fmt.Printf("other msg type")
 
 	}
+
+	return 0
+}
+
+//判断是一个完整的消息，返回消息的长度
+//等于0，是不足一个消息
+//大于0，是一个完成的消息，（可能是业务消息，也可能控制消息）
+func IsFullMessage(b *bytes.Buffer) int {
+	//检查长度
+	var msglen int
+	if b.Len() < MSGHEADER_LEN {
+		msglen = 0
+	} else if b.Len() == MSGHEADER_LEN {
+		//header消息，也可能是控制消息
+		return b.Len()
+	} else { //收到的消息长度大于消息头部
+		var testByte []byte
+		copy(testByte, b.Bytes()[:MSGHEADER_LEN])
+
+		//获取消息头部
+		msgHeader := &MsgHeader{}
+		GetMsgHeader(msgHeader, testByte, MSGHEADER_LEN)
+		//获取消息体长度，然后检查buffer中的字节序列的长度是否大于等于消息的长度
+		msglen := msgHeader.BodyLength + MSGHEADER_LEN + MSGTAIL_LEN
+
+		if int(msglen) <= b.Len() {
+			return int(msglen)
+		}
+	}
+
+	return msglen
 }

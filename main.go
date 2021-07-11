@@ -6,6 +6,7 @@ import (
 	"os"
 	vssconf "ssevss/configs"
 	sess "ssevss/session"
+	"sync"
 	"time"
 )
 
@@ -37,13 +38,22 @@ func main() {
 	// 断开连接，等待配置时间后重复进行连接
 
 	for {
+		var wait sync.WaitGroup
 		//连接网关，并进行验证
+		fmt.Println("start to login mdgw.")
 		iRet = sess.LoginMdgw(vssconf.VssConf.Gatewayip)
 
-		if iRet == -1 {
+		if iRet != sess.LOGINMDGW_OK {
 			fmt.Println("connect gateway failed, retry later")
 		} else {
+			fmt.Println("login ok")
 			//开始进行接收和解析
+			wait.Add(2)
+			seq1 := make(chan int)
+			go sess.RecvMdgwMsg(seq1, &wait)
+			go sess.ProcMdgwMsg(seq1, &wait)
+
+			wait.Wait()
 		}
 
 		time.Sleep(time.Duration(vssconf.VssConf.RetryTime) * time.Second)
