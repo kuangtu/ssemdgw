@@ -224,13 +224,10 @@ func verifyMDGW() int {
 // }
 
 //通过验证之后，从MDGW网关接收行情，以goroutine方式运行
-func RecvMdgwMsg(ch chan int, wait *sync.WaitGroup) bool {
+func RecvMdgwMsg(wait *sync.WaitGroup) bool {
 
 	//启动标志
-	<-ch
 	fmt.Println("recv mdgw msg")
-
-	wait.Done()
 
 	//开始进行接收
 	for {
@@ -254,19 +251,22 @@ func RecvMdgwMsg(ch chan int, wait *sync.WaitGroup) bool {
 				vssSession.MsgQueue <- getMsg
 			}
 			//继续从socket中读取，然后放入到RecvBuf中
+
 		}
 	}
 
 	//发送退出消息到解析队列
+	queNoticeMsg, _ := msg.NewQueueNoticeMsg()
+	vssSession.MsgQueue <- queNoticeMsg
+	wait.Done()
 	return true
 }
 
 //处理竞价行情
-func ProcMdgwMsg(ch chan int, wait *sync.WaitGroup) bool {
+func ProcMdgwMsg(wait *sync.WaitGroup) bool {
 
 	//等待执行
 	fmt.Println("start ProcMdgw msg")
-	ch <- 1
 	for {
 		getMsg := <-vssSession.MsgQueue
 		iRet := msg.ParseMsg(getMsg)

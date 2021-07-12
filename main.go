@@ -49,9 +49,8 @@ func main() {
 			fmt.Println("login ok")
 			//开始进行接收和解析
 			wait.Add(2)
-			seq1 := make(chan int)
-			go sess.RecvMdgwMsg(seq1, &wait)
-			go sess.ProcMdgwMsg(seq1, &wait)
+			go sess.RecvMdgwMsg(&wait)
+			go sess.ProcMdgwMsg(&wait)
 
 			wait.Wait()
 		}

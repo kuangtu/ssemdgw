@@ -4,14 +4,24 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
-	aa "ssevss/utils"
+	mdgwutils "ssevss/utils"
+)
+
+const (
+	LOGINMSG_TYPE_INT     = 1
+	LOGOUTMSG_TYPE_INT    = 2
+	QUEUE_NOTICE_TYPE_INT = 3
 )
 
 const (
 
 	//消息类型
-	LOGINMSG_TYPE = "S001"
-	LOGINOUT_TYPE = "S002"
+	LOGINMSG_TYPE     = "S001"
+	LOGOUTMSG_TYPE    = "S002"
+	QUEUE_NOTICE_TYPE = "E001"
+	HEARTBTMSG_TYPE   = "S003"
+	MKTDATAMSG_TYPE   = "M101"
+	MKTSNAPMSG_TYPE   = "M102"
 	//消息字符串填充
 	SenderCompID     = "CSI"
 	TargetCompID     = "SSE"
@@ -47,6 +57,17 @@ type MsgHeader struct {
 
 type MsgTail struct {
 	CheckSum uint32
+}
+
+//解析goroutine退出消息
+//和心跳消息类似，消息类型不同
+type QueueNoticeMsg struct {
+	MsgHeader
+	MsgTail
+}
+
+func (queueNoticeMsg *QueueNoticeMsg) GetMsgType() [MsgType_LEN]byte {
+	return queueNoticeMsg.MsgType
 }
 
 //登录消息
@@ -224,7 +245,7 @@ func calLoginMsgChkSum(loginMsg *LoginMsg) *bytes.Buffer {
 	buf.Write(loginMsg.AppVerID[:])
 
 	//计算
-	chksum := aa.CalCheckSum(buf.Bytes(), MSGHEADER_LEN+LOGINMSG_BODY_LEN)
+	chksum := mdgwutils.CalCheckSum(buf.Bytes(), MSGHEADER_LEN+LOGINMSG_BODY_LEN)
 	loginMsg.CheckSum = chksum
 	//写入校验和
 	binary.Write(buf, binary.BigEndian, loginMsg.CheckSum)
@@ -243,6 +264,58 @@ func NewLoginMsg(sendingTtime, msgSeq uint64) (*LoginMsg, *bytes.Buffer) {
 	//计算数据包校验和，并填充校验值
 	buf := calLoginMsgChkSum(loginMsg)
 	return loginMsg, buf
+}
+
+func setQueNoticeMsgHeader(queueNoticeMsg *QueueNoticeMsg) {
+	//填充消息类型
+	var setStr []byte
+	setStr = []byte(QUEUE_NOTICE_TYPE)
+	for i, c := range setStr {
+		queueNoticeMsg.MsgType[i] = c
+	}
+
+	//填充消息序号
+	queueNoticeMsg.MsgSeq = 0
+	//发送时间为0
+	queueNoticeMsg.SendingTtime = 0
+	//消息体长度为0
+	queueNoticeMsg.BodyLength = 0
+
+}
+
+func calQueNoticeMsgChkSum(queueNoticeMsg *QueueNoticeMsg) *bytes.Buffer {
+	//将数据包中的字段放入到字节数组中，计算校验和
+	buf := new(bytes.Buffer)
+
+	//写入消息类型
+	buf.Write(queueNoticeMsg.MsgType[:])
+
+	//按照大端方式写入发送时间
+	binary.Write(buf, binary.BigEndian, queueNoticeMsg.SendingTtime)
+	//按照大端方式写入发送序号
+	binary.Write(buf, binary.BigEndian, queueNoticeMsg.MsgSeq)
+	//写入消息体长度
+	binary.Write(buf, binary.BigEndian, queueNoticeMsg.BodyLength)
+
+	//计算校验和
+	chksum := mdgwutils.CalCheckSum(buf.Bytes(), MSGHEADER_LEN)
+	queueNoticeMsg.CheckSum = chksum
+	//写入校验和
+	binary.Write(buf, binary.BigEndian, chksum)
+
+	return buf
+}
+
+//创建解析线程退出消息
+func NewQueueNoticeMsg() (*QueueNoticeMsg, *bytes.Buffer) {
+	queueNoticeMsg := &QueueNoticeMsg{}
+
+	//填充消息头部
+	setQueNoticeMsgHeader(queueNoticeMsg)
+	//计算数据包校验和，并填充校验值
+	buf := calQueNoticeMsgChkSum(queueNoticeMsg)
+
+	return queueNoticeMsg, buf
 }
 
 func GetMsgHeader(msgHeader *MsgHeader, b []byte, len int) {
@@ -270,7 +343,7 @@ func GetMsgFromBytes(b []byte, msglen int) MDGWMsg {
 			fmt.Println("read msg from bytes err:", err)
 		}
 		return loginMsg
-	} else if bytes.Equal(b[:MsgType_LEN], []byte(LOGINOUT_TYPE)) {
+	} else if bytes.Equal(b[:MsgType_LEN], []byte(LOGOUTMSG_TYPE)) {
 		logoutMsg := &LogoutMsg{}
 		fmt.Println("it's logout msg")
 		err := binary.Read(buf, binary.BigEndian, logoutMsg)
@@ -287,20 +360,23 @@ func GetMsgFromBytes(b []byte, msglen int) MDGWMsg {
 
 //解析消息
 func ParseMsg(mdgwMsg MDGWMsg) int {
-
+	var iRet int
 	switch v := mdgwMsg.(type) {
 	case *LoginMsg:
 		fmt.Println("verify mdgw get msg is loginMsg", v.MsgType)
+		iRet = LOGINMSG_TYPE_INT
 	case *LogoutMsg:
 		fmt.Println("verify mdgw get msg is logoutMsg", v.MsgType)
+		iRet = LOGOUTMSG_TYPE_INT
 	case *MktStatusMsg:
 		fmt.Println("market status msg:", v.MsgType)
+
 	default:
 		fmt.Printf("other msg type")
 
 	}
 
-	return 0
+	return iRet
 }
 
 //判断是一个完整的消息，返回消息的长度
