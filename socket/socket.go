@@ -97,7 +97,4 @@ func ReadFromSock(rconn io.ReadWriteCloser, b *bytes.Buffer) int {
 
 	return readnum
 
-	msgLen := msg.IsFullMessage(b)
-
-	return msgLen
 }

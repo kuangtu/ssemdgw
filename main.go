@@ -51,7 +51,7 @@ func main() {
 			wait.Add(2)
 			go sess.RecvMdgwMsg(&wait)
 			go sess.ProcMdgwMsg(&wait)
-
+			//等待接收、解析goroutine退出
 			wait.Wait()
 		}
 

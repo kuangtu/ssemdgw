@@ -8,9 +8,9 @@ import (
 )
 
 const (
-	LOGINMSG_TYPE_INT     = 1
-	LOGOUTMSG_TYPE_INT    = 2
-	QUEUE_NOTICE_TYPE_INT = 3
+	LOGINMSG_TYPE_INT = iota
+	LOGOUTMSG_TYPE_INT
+	QUEUE_NOTICE_TYPE_INT
 )
 
 const (
@@ -316,6 +316,59 @@ func NewQueueNoticeMsg() (*QueueNoticeMsg, *bytes.Buffer) {
 	buf := calQueNoticeMsgChkSum(queueNoticeMsg)
 
 	return queueNoticeMsg, buf
+}
+
+func setHeartBtMsgHeader(heartBtMsg *HeartBtMsg, sendingTtime, msgSeq uint64) {
+	//填充消息类型
+	//填充消息类型
+	var setStr []byte
+	setStr = []byte(QUEUE_NOTICE_TYPE)
+	for i, c := range setStr {
+		heartBtMsg.MsgType[i] = c
+	}
+
+	//填充消息序号
+	heartBtMsg.MsgSeq = msgSeq
+	//发送时间为0
+	heartBtMsg.SendingTtime = sendingTtime
+	//消息体长度为0
+	heartBtMsg.BodyLength = 0
+}
+
+func calHeartBtMsgChkSum(heartBtMsg *HeartBtMsg) *bytes.Buffer {
+	//将数据包中的字段放入到字节数组中，计算校验和
+	buf := new(bytes.Buffer)
+
+	//写入消息类型
+	buf.Write(heartBtMsg.MsgType[:])
+	//按照大端方式写入发送时间
+	binary.Write(buf, binary.BigEndian, heartBtMsg.SendingTtime)
+	//按照大端方式写入发送序号
+	binary.Write(buf, binary.BigEndian, heartBtMsg.MsgSeq)
+	//写入消息体长度
+	binary.Write(buf, binary.BigEndian, heartBtMsg.BodyLength)
+
+	//计算校验和
+	chksum := mdgwutils.CalCheckSum(buf.Bytes(), MSGHEADER_LEN)
+	heartBtMsg.CheckSum = chksum
+	//写入校验和
+	binary.Write(buf, binary.BigEndian, chksum)
+
+	return buf
+
+}
+
+//创建一个心跳消息
+func NewHeartBtMsg(sendingTtime, msgSeq uint64) (*HeartBtMsg, *bytes.Buffer) {
+	heartBtMsg := &HeartBtMsg{}
+
+	//填充消息头部
+	setHeartBtMsgHeader(heartBtMsg, sendingTtime, msgSeq)
+
+	//计算数据包校验和，并填充校验值
+	buf := calHeartBtMsgChkSum(heartBtMsg)
+
+	return heartBtMsg, buf
 }
 
 func GetMsgHeader(msgHeader *MsgHeader, b []byte, len int) {

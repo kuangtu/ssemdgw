@@ -35,9 +35,13 @@ type MdgwSession struct {
 	Logger log.Logger
 	//解析消息的channel
 	MsgQueue chan msg.MDGWMsg
+	//向MDGW发送消息时mutex
+	SendMutex sync.Mutex
 }
 
-var vssSession MdgwSession
+var (
+	vssSession MdgwSession
+)
 
 func InitSession() {
 	vssSession = MdgwSession{
@@ -250,9 +254,8 @@ func RecvMdgwMsg(wait *sync.WaitGroup) bool {
 				//将获取的消息存放到队列中进行解析
 				vssSession.MsgQueue <- getMsg
 			}
-			//继续从socket中读取，然后放入到RecvBuf中
-
 		}
+		//继续从socket中读取，然后放入到RecvBuf中
 	}
 
 	//发送退出消息到解析队列
@@ -277,5 +280,16 @@ func ProcMdgwMsg(wait *sync.WaitGroup) bool {
 
 	}
 	wait.Done()
+	return true
+}
+
+//发送心跳消息
+func SendHeartBtMsg(wait *sync.WaitGroup) bool {
+	defer vssSession.SendMutex.Unlock()
+	//创建消息
+	heartBtMsg := msg.NewHeartBtMsg()
+	vssSession.SendMutex.Lock()
+
+	//
 	return true
 }
