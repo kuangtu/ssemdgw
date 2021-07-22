@@ -43,8 +43,13 @@ func main() {
 		fmt.Println("start to login mdgw.")
 		iRet = sess.LoginMdgw(vssconf.VssConf.Gatewayip)
 
-		if iRet != sess.LOGINMDGW_OK {
+		if iRet == sess.CONN_FAILED {
 			fmt.Println("connect gateway failed, retry later")
+			//确认清理缓存的数据等
+			continue
+		} else if iRet == sess.MDGWVERIFY_FAILED {
+			fmt.Println("mdgwverify failed, connect manual.")
+			break
 		} else {
 			fmt.Println("login ok")
 			//开始进行接收和解析

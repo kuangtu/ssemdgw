@@ -9,6 +9,8 @@ import (
 	sock "ssevss/socket"
 	"sync"
 
+	mdgwutils "ssevss/utils"
+
 	log "github.com/sirupsen/logrus"
 )
 
@@ -16,7 +18,7 @@ const (
 	MDGWVERIFY_OK          = 1
 	LOGINMDGW_OK           = 0
 	CONN_FAILED            = -1
-	VERIFY_FAILED          = -2
+	MDGWVERIFY_FAILED      = -2
 	SND_VERIFYMSG_FAILED   = -3
 	SND_VERIFYMSG_PART_ERR = -4
 
@@ -41,6 +43,8 @@ type MdgwSession struct {
 
 var (
 	vssSession MdgwSession
+	msgMutex   sync.Mutex
+	msgSeq     uint64
 )
 
 func InitSession() {
@@ -65,31 +69,30 @@ func (mdgw *MdgwSession) SetSessionRconn(rConn *net.TCPConn) {
 
 //连接网关进行验证
 func LoginMdgw(mdgwAddr string) int {
-	// var iRet int
-	// //socket连接网关
-	// raddr := sock.NewSockAddr(mdgwAddr)
-	// //连接
-	// rconn, err := sock.ConnGateWay(raddr)
+	var iRet int
+	//socket连接网关
+	raddr := sock.NewSockAddr(mdgwAddr)
+	//连接
+	rconn, err := sock.ConnGateWay(raddr)
 
-	// //socket 连接失败
-	// if err != nil {
-	// 	return CONN_FAILED
-	// }
+	//socket 连接失败
+	if err != nil {
+		return CONN_FAILED
+	}
 
-	// //设置连接信息
-	// InitSession()
-	// vssSession.SetSessionRadd(raddr)
-	// vssSession.SetSessionRconn(rconn)
+	//设置连接信息
+	InitSession()
+	vssSession.SetSessionRadd(raddr)
+	vssSession.SetSessionRconn(rconn)
 
-	// //验证消息
-	// iRet = verifyMDGW()
-	// if iRet != MDGWVERIFY_OK {
-	// 	return iRet
-	// } else {
-	// 	return LOGINMDGW_OK
-	// }
-
-	return LOGINMDGW_OK
+	//验证消息，接收验证消息异常，也认为验证失败
+	iRet = verifyMDGW()
+	//验证通过
+	if iRet == MDGWVERIFY_OK {
+		return LOGINMDGW_OK
+	}
+	//登录失败
+	return MDGWVERIFY_FAILED
 
 }
 
@@ -97,7 +100,7 @@ func LoginMdgw(mdgwAddr string) int {
 func verifyMDGW() int {
 
 	//创建验证消息
-	logingMsg, buf := msg.NewLoginMsg(3, 2)
+	logingMsg, buf := msg.NewLoginMsg(mdgwutils.GetCurTime(), getMsgSeq())
 	fmt.Printf("the long msg check sum is:%x", logingMsg.CheckSum)
 
 	//发送消息进行验证
@@ -139,7 +142,7 @@ func verifyMDGW() int {
 		return MDGWVERIFY_OK
 	default:
 		fmt.Printf("other msg type")
-		return VERIFY_FAILED
+		return MDGWVERIFY_FAILED
 	}
 
 }
@@ -287,9 +290,20 @@ func ProcMdgwMsg(wait *sync.WaitGroup) bool {
 func SendHeartBtMsg(wait *sync.WaitGroup) bool {
 	defer vssSession.SendMutex.Unlock()
 	//创建消息
-	heartBtMsg := msg.NewHeartBtMsg()
+	heartBtMsg, buf := msg.NewHeartBtMsg(mdgwutils.GetCurTime(), getMsgSeq())
 	vssSession.SendMutex.Lock()
+	mdgwutils.UNUSED(heartBtMsg, buf)
 
-	//
+	//通过socket发送心跳消息
 	return true
+}
+
+//获取消息编号
+func getMsgSeq() uint64 {
+	defer msgMutex.Unlock()
+
+	msgMutex.Lock()
+	msgSeq += 1
+
+	return msgSeq
 }

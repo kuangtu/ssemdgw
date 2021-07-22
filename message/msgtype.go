@@ -20,7 +20,7 @@ const (
 	LOGOUTMSG_TYPE    = "S002"
 	QUEUE_NOTICE_TYPE = "E001"
 	HEARTBTMSG_TYPE   = "S003"
-	MKTDATAMSG_TYPE   = "M101"
+	MKTSTUSMSG_TYPE   = "M101"
 	MKTSNAPMSG_TYPE   = "M102"
 	//消息字符串填充
 	SenderCompID     = "CSI"
@@ -123,7 +123,7 @@ func (mktStatusMsg *MktStatusMsg) GetMsgType() [MsgType_LEN]byte {
 	return mktStatusMsg.MsgType
 }
 
-//行情快照
+//行情快照，包含了扩展字段，根据类型读取扩展字段
 type HqSnapMsg struct {
 	MsgHeader
 	SecurityType      uint8
@@ -405,6 +405,25 @@ func GetMsgFromBytes(b []byte, msglen int) MDGWMsg {
 		}
 
 		return logoutMsg
+	} else if bytes.Equal(b[:MsgType_LEN], []byte(HEARTBTMSG_TYPE)) {
+		htMsg := &HeartBtMsg{}
+		fmt.Println("it's heartbeat msg")
+
+		err := binary.Read(buf, binary.BigEndian, htMsg)
+		if err != nil {
+			fmt.Println("it's heartbeart msg")
+		}
+		return htMsg
+	} else if bytes.Equal(b[:MsgType_LEN], []byte(MKTSTUSMSG_TYPE)) {
+		mktStatusMsg := &MktStatusMsg{}
+
+		fmt.Println("it's market status msg")
+
+		err := binary.Read(buf, binary.BigEndian, mktStatusMsg)
+		if err != nil {
+			fmt.Println("it's market status msg")
+		}
+		return mktStatusMsg
 	}
 
 	return nil
