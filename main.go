@@ -39,6 +39,9 @@ func main() {
 
 	for {
 		var wait sync.WaitGroup
+		//心跳消息设置，退出quit信号
+		var ticker = time.NewTicker(time.Duration(vssconf.VssConf.HeaderBtInt))
+		var quit = make(chan bool)
 		//连接网关，并进行验证
 		fmt.Println("start to login mdgw.")
 		iRet = sess.LoginMdgw(vssconf.VssConf.Gatewayip)
@@ -53,10 +56,11 @@ func main() {
 		} else {
 			fmt.Println("login ok")
 			//开始进行接收和解析
-			wait.Add(2)
-			go sess.RecvMdgwMsg(&wait)
+			wait.Add(3)
+			go sess.RecvMdgwMsg(&wait, quit)
 			go sess.ProcMdgwMsg(&wait)
-			//等待接收、解析goroutine退出
+			go sess.SendHeartBtMsg(&wait, ticker, quit)
+			//等待接收、解析、发送心跳消息goroutine退出
 			wait.Wait()
 		}
 

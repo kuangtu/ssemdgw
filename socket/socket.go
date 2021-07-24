@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"io"
 	"net"
-	msg "ssevss/message"
 )
 
 const (
+	SOCK_WRITE_OK         = 0
 	SOCK_WRITE_ERR        = -1
 	SOCKET_WRITE_PART_ERR = -2
 )

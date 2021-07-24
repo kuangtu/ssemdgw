@@ -49,7 +49,7 @@ type MDGWMsg interface {
 }
 
 type MsgHeader struct {
-	MsgType      [MsgType_LEN]byte
+	MsgType      [msg.MsgType_LEN]byte
 	SendingTtime uint64
 	MsgSeq       uint64
 	BodyLength   uint32
@@ -66,7 +66,7 @@ type QueueNoticeMsg struct {
 	MsgTail
 }
 
-func (queueNoticeMsg *QueueNoticeMsg) GetMsgType() [MsgType_LEN]byte {
+func (queueNoticeMsg *QueueNoticeMsg) GetMsgType() [msg.MsgType_LEN]byte {
 	return queueNoticeMsg.MsgType
 }
 

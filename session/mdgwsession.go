@@ -8,6 +8,7 @@ import (
 	msg "ssevss/message"
 	sock "ssevss/socket"
 	"sync"
+	"time"
 
 	mdgwutils "ssevss/utils"
 
@@ -231,7 +232,7 @@ func verifyMDGW() int {
 // }
 
 //通过验证之后，从MDGW网关接收行情，以goroutine方式运行
-func RecvMdgwMsg(wait *sync.WaitGroup) bool {
+func RecvMdgwMsg(wait *sync.WaitGroup， quit chan bool) bool {
 
 	//启动标志
 	fmt.Println("recv mdgw msg")
@@ -264,6 +265,8 @@ func RecvMdgwMsg(wait *sync.WaitGroup) bool {
 	//发送退出消息到解析队列
 	queNoticeMsg, _ := msg.NewQueueNoticeMsg()
 	vssSession.MsgQueue <- queNoticeMsg
+	//发送退出信号到心跳goroutine
+	quit <- true
 	wait.Done()
 	return true
 }
@@ -286,16 +289,47 @@ func ProcMdgwMsg(wait *sync.WaitGroup) bool {
 	return true
 }
 
+//发送心跳消息goroutine
+func SendHeartBtMsg(wait *sync.WaitGroup,  ticker *time.Ticker, quit chan bool) bool{
+
+	for {
+		select {
+		case <-quit: //session读取、接收异常，心跳退出
+			return
+		case <-ticker.C:
+			DoSendBtMsg()
+			//如果是发送的时候，socket异常，不进行异常退出
+			//由RecvMdgwMsg通知
+		}
+	}
+
+	wait.Done()
+	return true
+}
+
 //发送心跳消息
-func SendHeartBtMsg(wait *sync.WaitGroup) bool {
+func DoSendBtMsg() int {
 	defer vssSession.SendMutex.Unlock()
 	//创建消息
-	heartBtMsg, buf := msg.NewHeartBtMsg(mdgwutils.GetCurTime(), getMsgSeq())
+	_, buf := msg.NewHeartBtMsg(mdgwutils.GetCurTime(), getMsgSeq())
 	vssSession.SendMutex.Lock()
-	mdgwutils.UNUSED(heartBtMsg, buf)
+	// mdgwutils.UNUSED(heartBtMsg, buf)
 
 	//通过socket发送心跳消息
-	return true
+	sendnum, err := sock.WriteSock(vssSession.Rconn, buf.Bytes(), buf.Len())
+	if err != nil {
+		fmt.Println("socket send verify message failed.")
+
+		return sock.SOCK_WRITE_ERR
+	}
+	if sendnum != buf.Len() {
+		fmt.Println("send verify message part")
+
+		return sock.SOCKET_WRITE_PART_ERR
+	}
+
+	return sock.SOCK_WRITE_OK
+
 }
 
 //获取消息编号

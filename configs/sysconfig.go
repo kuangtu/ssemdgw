@@ -13,7 +13,7 @@ type SysConf struct {
 	Backdir      string `json:"BackDir"`
 	SenderCompID string `json:"SenderCompID"`
 	TargetCompID string `json:"TargetCompID"`
-	HeaderBtInt  string `json:"HeaderBtInt"`
+	HeaderBtInt  int    `json:"HeaderBtInt"`
 	ApplVerID    string `json:"ApplVerID"`
 	RetryTime    int    `json:"RetryTime"`
 }
