@@ -4,13 +4,18 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
+	"ssevss/datas"
 	mdgwutils "ssevss/utils"
 )
 
 const (
 	LOGINMSG_TYPE_INT = iota
 	LOGOUTMSG_TYPE_INT
+	HBMSG_TYPE_INT
+	MKTSTATUS_TYPE_INT
+	MKTHQ_TYPE_INT
 	QUEUE_NOTICE_TYPE_INT
+	OTHERMSG_TYPE_INT //可能收到了其他类型的消息
 )
 
 const (
@@ -40,6 +45,15 @@ const (
 	UINT64_LEN        = 8
 	UINT32_LEN        = 4
 	UINT16_LEN        = 2
+
+	//市场状态消息
+	TradingSessionID_LEN = 8
+	//行情快照消息
+	MDStreamID_LEN   = 5
+	SecurityID_LEN   = 8
+	Symbol_LEN       = 8
+	TradingPhase_LEN = 8
+	MDEntryType_LEN  = 2
 )
 
 //创建MDGW消息结构体
@@ -49,7 +63,7 @@ type MDGWMsg interface {
 }
 
 type MsgHeader struct {
-	MsgType      [msg.MsgType_LEN]byte
+	MsgType      [MsgType_LEN]byte
 	SendingTtime uint64
 	MsgSeq       uint64
 	BodyLength   uint32
@@ -113,7 +127,7 @@ type MktStatusMsg struct {
 	MsgHeader
 	SecurityType     uint8
 	TradSesMode      uint8
-	TradingSessionID [8]byte
+	TradingSessionID [TradingSessionID_LEN]byte
 	TotNoRelatedSym  uint32
 	MsgTail
 }
@@ -124,34 +138,37 @@ func (mktStatusMsg *MktStatusMsg) GetMsgType() [MsgType_LEN]byte {
 }
 
 //行情快照，包含了扩展字段，根据类型读取扩展字段
-type HqSnapMsg struct {
+type MktHqSnapMsg struct {
 	MsgHeader
 	SecurityType      uint8
 	TradSesMode       uint8
 	TradeDate         uint32
 	LastUpdateTime    uint32
-	MDStreamID        [5]byte
-	SecurityID        [8]byte
-	Symbol            [8]byte
+	MDStreamID        [MDStreamID_LEN]byte
+	SecurityID        [SecurityID_LEN]byte
+	Symbol            [Symbol_LEN]byte
 	PreClosePx        uint64
 	TotalVolumeTraded uint64
 	NumTrades         uint64
 	TotalValueTraded  uint64
-	TradingPhaseCode  [8]byte
+	TradingPhaseCode  [TradingPhase_LEN]byte
+}
+
+//实现MDGWMsg接口
+func (mktHqSnapMsg *MktHqSnapMsg) GetMsgType() [MsgType_LEN]byte {
+	return mktHqSnapMsg.MsgType
 }
 
 //指数行情快照
 //根据条目个数需要进行扩展
 type IndexSnapExt struct {
-	SnapData    HqSnapMsg
 	NoMDEntries uint16
-	MDEntryType [2]byte
+	MDEntryType [MDEntryType_LEN]byte
 	MDEntryPx   uint64
 }
 
 //竞价行情快照
 type BidSnapExt struct {
-	SnapData          HqSnapMsg
 	NoMDEntries       uint16
 	MDEntryType       [2]byte
 	MDEntryPx         uint64
@@ -403,7 +420,6 @@ func GetMsgFromBytes(b []byte, msglen int) MDGWMsg {
 		if err != nil {
 			fmt.Println("read msg from bytes err:", err)
 		}
-
 		return logoutMsg
 	} else if bytes.Equal(b[:MsgType_LEN], []byte(HEARTBTMSG_TYPE)) {
 		htMsg := &HeartBtMsg{}
@@ -437,15 +453,22 @@ func ParseMsg(mdgwMsg MDGWMsg) int {
 	case *LoginMsg:
 		fmt.Println("verify mdgw get msg is loginMsg", v.MsgType)
 		iRet = LOGINMSG_TYPE_INT
+		datas.ProcLoginMsg(v)
 	case *LogoutMsg:
 		fmt.Println("verify mdgw get msg is logoutMsg", v.MsgType)
 		iRet = LOGOUTMSG_TYPE_INT
+		datas.ProcLogoutMsg(v)
 	case *MktStatusMsg:
 		fmt.Println("market status msg:", v.MsgType)
-
+		iRet = MKTSTATUS_TYPE_INT
+		datas.ProcMtStatusMsg(v)
+	case *MktHqSnapMsg:
+		fmt.Println("snap hq msg:", v.MsgType)
+		iRet = MKTHQ_TYPE_INT
+		datas.ProcHqSnapMsg(v)
 	default:
 		fmt.Printf("other msg type")
-
+		iRet = OTHERMSG_TYPE_INT
 	}
 
 	return iRet

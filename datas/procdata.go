@@ -1,9 +1,7 @@
 package datas
 
 import (
-	"fmt"
 	msg "ssevss/message"
-	"sync"
 )
 
 //处理登录消息
@@ -26,10 +24,7 @@ func ProcHeartBtMsg(heartBtMsg *msg.HeartBtMsg) {
 
 }
 
-//处理行情快照消息
+//处理快照行情消息
 func ProcHqSnapMsg(hqSnapMsg *msg.HqSnapMsg) {
 
 }
-
-//处理指数行情
-
