@@ -159,6 +159,16 @@ func (mktHqSnapMsg *MktHqSnapMsg) GetMsgType() [MsgType_LEN]byte {
 	return mktHqSnapMsg.MsgType
 }
 
+//因为行情快照包含了扩展字段，非定长结构体
+//需要基于消息头部中长度以及扩展字段解析
+type MktHq struct {
+	hqbufer *bytes.Buffer
+}
+
+func (MktHq *MktHq) GetMsgType() [MsgType_LEN]byte {
+	return [MsgType_LEN]byte{'M', '1', '0', '2'}
+}
+
 //指数行情快照
 //根据条目个数需要进行扩展
 type IndexSnapExt struct {
@@ -440,6 +450,12 @@ func GetMsgFromBytes(b []byte, msglen int) MDGWMsg {
 			fmt.Println("it's market status msg")
 		}
 		return mktStatusMsg
+	} else if bytes.Equal(b[:MsgType_LEN], []byte(MKTSNAPMSG_TYPE)) {
+		fmt.Println("it's market hq message")
+		mktHq := &MktHq{}
+		mktHq.hqbufer = bytes.NewBuffer(b)
+
+		return mktHq
 	}
 
 	return nil
@@ -466,6 +482,9 @@ func ParseMsg(mdgwMsg MDGWMsg) int {
 		fmt.Println("snap hq msg:", v.MsgType)
 		iRet = MKTHQ_TYPE_INT
 		datas.ProcHqSnapMsg(v)
+	case *MktHq:
+		fmt.Println("... mkt hq ")
+		datas.ProcMktHqMsg(v)
 	default:
 		fmt.Printf("other msg type")
 		iRet = OTHERMSG_TYPE_INT

@@ -25,6 +25,11 @@ func ProcHeartBtMsg(heartBtMsg *msg.HeartBtMsg) {
 }
 
 //处理快照行情消息
-func ProcHqSnapMsg(hqSnapMsg *msg.HqSnapMsg) {
+func ProcHqSnapMsg(hqSnapMsg *msg.MktHqSnapMsg) {
+
+}
+
+//处理快照行情消息
+func ProcMktHqMsg(mktHqMsg *msg.MktHq) {
 
 }
