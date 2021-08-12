@@ -1,23 +1,25 @@
 package datas
 
-type MemData strcut {
+type MemData struct {
 	IndexMemHq map[IndexHq]string
 	StockMemHq map[StkHq]string
-
 }
 
 var MemHqData MemData
 
-//内存中的行情通过hash保存
-
-//内存指数行情
-
-//内存竞价行情
-
 //初始化内存行情
 func InitMemHq() {
-	MemHqData.IndexMemHq =make(map[IndexHq]string)
+	MemHqData.IndexMemHq = make(map[IndexHq]string)
 	MemHqData.StockMemHq = make(map[StkHq]string)
 }
 
-func
+//更新指数行情
+func (memHqData *MemData) UpdateIdxHq(idxHq IndexHq) {
+	MemHqData.IndexMemHq[idxHq] = string(idxHq.SecurityID[:])
+
+}
+
+//更新证券行情
+func (memHqData *MemData) UpdateStkHq(stkHq StkHq) {
+	MemHqData.StockMemHq[stkHq] = string(stkHq.SecurityID[:])
+}
