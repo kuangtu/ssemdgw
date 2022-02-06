@@ -9,7 +9,7 @@
 
 MDGW（Market Data GateWay）行情网关，固定提供行情任务和文件任务。对于行情接收任务，以Binary或者STEP接口规范进行转发，也可以选择是否落地mktdt格式的行情文件。技术架构如下：
 
-![MDGW技术架构](jpg/MDGW技术架构.jpg)
+![MDGW技术架构](jpg\MDGW技术架构.jpg)
 
 ## 1.3 为什么用Go语言
 
