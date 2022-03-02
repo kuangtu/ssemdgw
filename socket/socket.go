@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"io"
 	"net"
+
+	"github.com/prometheus/common/log"
+	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -18,7 +21,8 @@ func NewSockAddr(addrStr string) *net.TCPAddr {
 	//解析socket地址
 	addr, err := net.ResolveTCPAddr("tcp", addrStr)
 	if err != nil {
-		fmt.Println("the addr is error:", addrStr)
+		// fmt.Println("the addr is error:", addrStr)
+		logrus.Fatal("resolve tcp addr error.")
 	}
 
 	return addr
@@ -29,11 +33,13 @@ func ConnGateWay(raddr *net.TCPAddr) (*net.TCPConn, error) {
 	//发起tcp连接
 	rconn, err := net.DialTCP("tcp", nil, raddr)
 	if err != nil {
-		fmt.Printf("Remote addr connection failed:%s\n", err)
+		// fmt.Printf("Remote addr connection failed:%s\n", err)
+		log.Error("connect mdgw gateway failed:%s\n", err)
 		return rconn, err
 	}
 
 	fmt.Printf("conncet remote addr success:%s\n", raddr)
+	log.Info("connect mdgw gateway success:%s\n", raddr)
 
 	return rconn, nil
 }

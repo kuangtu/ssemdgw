@@ -3,11 +3,12 @@ package main
 import (
 	"flag"
 	"fmt"
-	"os"
 	vssconf "ssevss/configs"
 	sess "ssevss/session"
 	"sync"
 	"time"
+
+	"github.com/sirupsen/logrus"
 )
 
 var (
@@ -16,19 +17,21 @@ var (
 
 func main() {
 	var iRet int
-	fmt.Println("main function")
+	logrus.SetLevel(logrus.TraceLevel)
 	flag.Parse()
 	if *confile == "" {
-		fmt.Println("confile path empty")
-		os.Exit(1)
+		// fmt.Println("confile path empty")
+		// os.Exit(1)
+		logrus.Fatal("config file is missing.")
 	}
 
 	//读取配置文件，进行解析
 	iRet = vssconf.ReadSysConf(*confile)
 
 	if iRet == -1 {
-		fmt.Println("read config file failed, and exit")
-		os.Exit(-1)
+		// fmt.Println("read config file failed, and exit")
+		// os.Exit(-1)
+		logrus.Fatal("read config file failed.")
 	}
 
 	//连接MDGW网关

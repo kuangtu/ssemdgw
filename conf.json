@@ -1,6 +1,7 @@
 {
     "GateWayIP:port": "127.0.0.1:20001",
     "LocalIP:port": "127.0.0.1:30001",
-    "BackDir": "BackDir",
+    "DataDir": "DataDir",
+    # socket中断超时时间
     "RetryTime": 5
 }

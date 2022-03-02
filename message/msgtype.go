@@ -279,7 +279,7 @@ func calLoginMsgChkSum(loginMsg *LoginMsg) *bytes.Buffer {
 	return buf
 }
 
-//创建登录消息
+//创建登录消息,参数文件当前时间和消息编号
 func NewLoginMsg(sendingTtime, msgSeq uint64) (*LoginMsg, *bytes.Buffer) {
 	loginMsg := &LoginMsg{}
 	//初始化登录消息

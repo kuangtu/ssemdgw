@@ -12,7 +12,8 @@ import (
 
 	mdgwutils "ssevss/utils"
 
-	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -35,7 +36,7 @@ type MdgwSession struct {
 	Laddr, Raddr *net.TCPAddr
 	Lconn, Rconn io.ReadWriteCloser
 	//日志
-	Logger log.Logger
+	Logger logrus
 	//解析消息的channel
 	MsgQueue chan msg.MDGWMsg
 	//向MDGW发送消息时mutex
@@ -81,6 +82,7 @@ func LoginMdgw(mdgwAddr string) int {
 		return CONN_FAILED
 	}
 
+	//Socket tcp连接成功
 	//设置连接信息
 	InitSession()
 	vssSession.SetSessionRadd(raddr)
@@ -102,7 +104,8 @@ func verifyMDGW() int {
 
 	//创建验证消息
 	logingMsg, buf := msg.NewLoginMsg(mdgwutils.GetCurTime(), getMsgSeq())
-	fmt.Printf("the long msg check sum is:%x", logingMsg.CheckSum)
+	// fmt.Printf("the long msg check sum is:%x", logingMsg.CheckSum)
+	logrus.Info("create login msg, checksum is:%x", logingMsg.CheckSum)
 
 	//发送消息进行验证
 	sendnum, err := sock.WriteSock(vssSession.Rconn, buf.Bytes(), buf.Len())
