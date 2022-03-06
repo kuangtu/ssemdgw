@@ -47,6 +47,7 @@ func main() {
 		var quit = make(chan bool)
 		//连接网关，并进行验证
 		fmt.Println("start to login mdgw.")
+		logrus.Info("start to logining sse mdgw gateway.")
 		iRet = sess.LoginMdgw(vssconf.VssConf.Gatewayip)
 
 		if iRet == sess.CONN_FAILED {
@@ -57,7 +58,8 @@ func main() {
 			fmt.Println("mdgwverify failed, connect manual.")
 			break
 		} else {
-			fmt.Println("login ok")
+			// fmt.Println("login ok")
+			logrus.Info("logining success...")
 			//开始进行接收和解析
 			wait.Add(3)
 			go sess.RecvMdgwMsg(&wait, quit)
